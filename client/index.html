@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Slot Machine</title>
+  <style>
+    .slot-machine{
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      text-align:center;
+      width:80%;
+      margin:0 auto;
+    }
+    .slot-machine #win{
+      font-size:2.5rem;
+    }
+    #images img{
+      width:25%;
+      height:auto;
+    }
+    .button{
+      display:block;
+      width:100px;
+      height:100px;
+      border:none;
+      outline: none;
+      background: url('button.png');
+      background-repeat: no-repeat;
+      margin:20px auto;
+      cursor: pointer;
+
+    }
+    .button:active{
+      position: relative;
+      top:5px;
+      
+    }
+    #history  #win{
+      font-size:1.5rem;
+      text-align: left;
+    }
+    @media screen and (max-width: 480px) {
+      .slot-machine{
+        width:90%;
+      }
+      .button{
+        width:50px;
+        width:50px;
+        background-size:contain;
+      }
+    }
+    @media screen and (max-width: 768px) {
+      .slot-machine{
+        width:90%;
+      }
+    }
+    @media screen and (min-width: 1024px) {
+      .slot-machine{
+        width:1024px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="slot-machine">
+    <div id="game">
+      <h1 id="win"></h1>
+      <div id="images">
+        <img src="Symbol_0.png">
+        <img src="Symbol_0.png">
+        <img src="Symbol_0.png">
+      </div>
+    </div>
+    <button class="button" id="playButton"></button>
+    <h2 id="bonus"></h2>
+    <div id="history"></div>
+  </div>
+</body>
+<script type="text/javascript">
+  let playButton = document.getElementById("playButton");
+  playButton.addEventListener('click', play);
+  play();
+
+  function play(){
+    resetGame();
+    fetchData();
+  }
+  //reset game to initial state
+  function resetGame(){
+     document.getElementById("history").innerHTML = "";
+     document.getElementById("bonus").innerHTML = "";
+  }
+
+  // fetch data from be
+  function fetchData(){
+    fetch('http://localhost:3000/api/slotmachine').then(res => res.json())
+    .then(data => {
+      render(data);
+      handleBonus(data);
+    }).catch(res => alert(res))
+  }
+
+  // check for bonus and clones current result storing it in history tab
+  function handleBonus(data){
+    if (data.bonus) {
+      let prevGame = document.getElementById("game").cloneNode(true);
+      prevGame.removeAttribute('id');
+      let colleceted = document.getElementById("history");
+      setTimeout( () => {
+        colleceted.prepend(prevGame);
+        document.getElementById("bonus").innerHTML = "";
+        fetchData();  
+      },2000)
+    }
+  }
+  // render data
+  function render(data){
+    document.getElementById("win").innerHTML = data.win;
+    let images = document.getElementById("images").children;
+    for ( let i = 0; i < images.length; i++){
+      images[i].src= `http://localhost:3000/imgs/prizes/Symbol_${data.reels[i]}.png`
+    }
+    if (data.bonus) {
+      document.getElementById("bonus").innerHTML = "Wooh, you got a BONUS, we'll roll for you again :)";
+    }
+  }
+</script>
+</html>
